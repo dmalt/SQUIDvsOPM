@@ -1,47 +1,63 @@
-clear all;
-close all;
+% clear all;
+% close all;
 
 
 import ups.spm_svd
 import ups.CrossSpectralTimeseries
 import ups.GenerateROC
+import ups.ReduceToTangentSpace
 
 
-InducedScale = 1;
+InducedScale = 10;
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
 
-data = load('data.mat') ;
+data = load('data_2D.mat') ;
 
 GainSVDTh = 0.0001;
-G_OPM = data.data{1}.nOPM.L;
-G_SQUID = data.data{1}.mSQUID.L;
-RL = data.data{2}.sources{1}.p;
-RR = data.data{2}.sources{2}.p;
-R = [RL; RR];
-% Do rank reduction, use the same threshold for the two sensor types 
-%
-[ug_OPM, sg_OPM, vg_OPM] = spm_svd(G_OPM*G_OPM', GainSVDTh);
-UP_OPM = ug_OPM';
-[ug_SQUID, sg_SQUID, vg_SQUID] = spm_svd(G_SQUID*G_SQUID', GainSVDTh);
-UP_SQUID = ug_SQUID';
-G = {G_SQUID, G_OPM};
-UP = {UP_SQUID, UP_OPM};
 
-% fix the phase lag 
+G_OPM = data.data{1}.nOPM.L;
+G_mSQUID = data.data{1}.mSQUID.L;
+G_SQUID = data.data{1}.SQUID.L;
+
+RL = data.data{1}.sources{1}.p;
+RR = data.data{1}.sources{2}.p;
+R = [RL; RR];
+
+clear data;
+
+G_OPM = ReduceToTangentSpace(G_OPM, 'all');
+G_SQUID = ReduceToTangentSpace(G_SQUID, 'grad');
+G_mSQUID = ReduceToTangentSpace(G_mSQUID, 'all');
+
+% Do rank reduction, use the same threshold for the two sensor types 
+[ug_OPM, sg_OPM, vg_OPM] = spm_svd(G_OPM * G_OPM', GainSVDTh);
+UP_OPM = ug_OPM';
+
+[ug_mSQUID, sg_mSQUID, vg_mSQUID] = spm_svd(G_mSQUID * G_mSQUID', GainSVDTh);
+UP_mSQUID = ug_mSQUID';
+
+[ug_SQUID, sg_SQUID, vg_SQUID] = spm_svd(G_SQUID * G_SQUID', GainSVDTh);
+UP_SQUID = ug_SQUID';
+
+G = {G_SQUID, G_mSQUID, G_OPM};
+UP = {UP_SQUID, UP_mSQUID, UP_OPM};
+
+[N_ch_squid, N_src_2] = size(G_SQUID);
+[N_ch_msquid, ~] = size(G_mSQUID);
+[N_ch_opm, ~] = size(G_OPM);
+N_ch = {N_ch_squid, N_ch_msquid, N_ch_opm};
+N_src = N_src_2 / 2;
+
+N_ch_p = {size(UP_SQUID,1), size(UP_mSQUID, 1), size(UP_OPM,1)};
+
+dec = 10;
+N_src_dec = ceil(N_src / dec);
+
+% % fix the phase lag 
 phi = pi / 2 - pi / 20;
 %generate random phase jitters and trials of brain noise (to save time)
 PhaseShiftsIn = [];
-dec = 10;
 
-% [~, ~, ~, ~, ~,...
-%  XYZGenOut,...
-%  ~,...
-%  PhaseShiftsOut] = SimulateDataPhase_SQUIDvsOPM(R([1,2],:),...
-%                                                 phi,...
-%                                                 true,...
-%                                                 PhaseShiftsIn,...
-%                                                 R,...
-%                                                 G_SQUID);
 
 Rdec = R(1:dec:end,:);
 
@@ -53,7 +69,20 @@ while(dst < 0.1)
     dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:));
 end
 
-for ty = 1:2
+for ty = 1:3
+
+    range = 1:2;
+    range_dec = 1:2;
+    G_dec = zeros(N_ch{ty}, N_src_dec * 2);
+
+    for i_src = 1:N_src_dec
+        G_dec(:,range) = G{ty}(:, range_dec);
+        range_dec = range_dec + 2 * dec;
+        range = range + 2;
+    end
+
+    Gp_dec{ty} = UP{ty} * G_dec;
+    Gp{ty} = UP{ty} * G{ty};
     % generate data from a network wit randomly chosen nodes located @ R(ind,:); 
     [Induced{ty},...
      BrainNoise{ty},...
@@ -66,12 +95,15 @@ for ty = 1:2
                                                     phi,...
                                                     true,...
                                                     PhaseShiftsIn,...
-                                                    R, G{ty});
+                                                    R, G{ty}, 0.25);
+
+     % [C, ~, XYZGenOut] = ups.SimulateData(phi, 100, InducedScale, 0, false, G{ty}, R, UP{ty});
 
     Data0{ty} = BrainNoise{ty} + InducedScale * Induced{ty};
-    [bf af] = butter(5,[8 12] / (0.5 * Fs), 'bandpass');
+    [bf, af] = butter(5, [8 12] / (0.5 * Fs), 'bandpass');
     % Filter in the band of interest
     Data{ty} = filtfilt(bf, af, Data0{ty}')';
+    clear Data0;
     % Reshape the data in a 3D structure(Space x Time x Epochs)
     [Nch{ty}, Tcnt] = size(Data{ty});
     T = fix(Tcnt / Ntr);
@@ -79,28 +111,44 @@ for ty = 1:2
     %reshape Data and store in a 3D array X
     X1{ty} = zeros(Nch{ty}, T, Ntr);
     range = 1:T;
-    for i=1:Ntr
+    for i = 1:Ntr
         X1{ty}(:,:,i) = UP{ty} * Data{ty}(:,range);
         range = range + T;
     end;
     %% Calculate band cross-spectral matrix 
     CrossSpecTime{ty} = CrossSpectralTimeseries(X1{ty});
-    C = reshape(mean(CrossSpecTime{ty}, 2), Nch{ty}, Nch{ty});
-    Gp{ty} = UP{ty} * G{ty};
+    % CrossSpecTime{ty} = C;
+    C = reshape(mean(CrossSpecTime{ty}, 2), N_ch_p{ty}, N_ch_p{ty});
 
-    [Qidics{ty}, Psidics{ty}, IND{ty}] = iDICS_1D(C, Gp{ty}(:, 1:dec:end));
+
+    % [Qidics{ty}, Psidics{ty}, IND{ty}] = iDICS_1D(C, Gp{ty}(:, 1:dec:end));
+    % [~, ~, IND{ty}] = iDICS_1D(C, Gp_dec{ty});
+    [A, Psidics{ty}, Qidics{ty}, IND{ty}] = ups.DICS((C), Gp_dec{ty}, 1000000);
+    % [~, ~, ~, Qidics{ty}] = ps.T_PSIICOS(imag(C(:)), Gp_dec{ty}, 0.9, 350, 0, []);
 
     [SPCidics{ty}(1,:),...
      TPRidics{ty}(1,:),...
-     PPVidics{ty}(1,:)] = GenerateROC(Qidics{ty}, 0.01, R(1:dec:end,:),...
-                                      IND{ty}, 100, XYZGenOut, 1);
+     PPVidics{ty}(1,:)] = GenerateROC(Qidics{ty}', 0.015, R(1:dec:end,:),...
+                                     IND{ty}, 100, XYZGenOut, 1);
 
 end
 
 figure
-col = {'r','b'}
-for ty = 1:2
+col = {'c','m', 'y'};
+for ty = 1:3
     plot(1 - SPCidics{ty}, TPRidics{ty}, col{ty})
     hold on;
 end;
-legend('SQUID','OPM')
+legend('SQUID (gradiometers)', 'mSQUID', 'OPM')
+xlabel('1 - specificity');
+ylabel('sensitivity');
+
+figure
+col = {'c', 'm', 'y'};
+for ty = 1:3
+    plot(TPRidics{ty}, PPVidics{ty}, col{ty})
+    hold on;
+end;
+legend('SQUID (gradiometers)', 'mSQUID', 'OPM')
+xlabel('recall');
+ylabel('precision');

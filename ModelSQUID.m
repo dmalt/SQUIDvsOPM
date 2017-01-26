@@ -62,9 +62,9 @@ PhaseShiftsIn = [];
 Rdec = R(1:dec:end,:);
 
 % for mc = 1:100
-for mc = 1:1
+for mc = 1:100
     dst = 0; 
-    while(dst < 0.07)
+    while(dst < 0.03)
         ind = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
         dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:))
     end

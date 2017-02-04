@@ -1,4 +1,4 @@
-function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShiftsOut] = SimulateDataPhase_SQUIDvsOPM(XYZGen, dPhi, bNewBrainNoise, PhaseShiftsIn, R, G2d, alpha_in)
+function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShiftsOut] = SimulateDataPhase_SQUIDvsOPM(XYZGen, dPhi, bNewBrainNoise, PhaseShiftsIn, R, G2d, alpha_in, ty)
 
     bUsePhases = ~isempty(PhaseShiftsIn);
 
@@ -42,7 +42,8 @@ function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShift
     clear s;
 
     if(~bNewBrainNoise)
-        BN = load('/home/asus/MyProjects/SQUIDvsAM_MEG/Data/BrainNoiseBiomag2017.mat');
+        % BN = load('BrainNoise2017.mat');
+        BN = load(['./BrainNoise2017_', num2str(ty), '.mat']);
     end;
 
     fprintf('Simulating trial data ...\n');
@@ -92,7 +93,7 @@ function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShift
     end
 
     if(bNewBrainNoise)
-       save('./BrainNoise2017.mat','BrainNoise');
+       save(['./BrainNoise2017_', num2str(ty), '.mat'],'BrainNoise');
     end;
 
     fprintf('\nDone.\n');

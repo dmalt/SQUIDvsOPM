@@ -9,7 +9,7 @@ import ups.ReduceToTangentSpace
 
 
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
-InducedScale = {0.25, 0.5, 0.75, 1.0, 1.25}; 
+InducedScale = {0.5}; 
 
 data = matfile('data_2D.mat') ;
 data = data.data(1,1);
@@ -80,13 +80,13 @@ Rdec = R(1:dec:end,:);
 
 % for mc = 1:100
 
-for mc = 1:100
+for mc = 1:2
 for i_snr = 1:length(InducedScale)
     disp('MC -------------> ')
     disp(mc)
     dst = 0; 
     while(dst < 0.03)
-        ind = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
+        ind = fix(1 + rand(2, 1) * (size(Rdec, 1) - 2));
         dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:))
     end
 
@@ -159,7 +159,7 @@ for i_snr = 1:length(InducedScale)
         [SPCdics{ty}(mc, i_snr, :),...
          TPRdics{ty}(mc, i_snr, :),...
          PPVdics{ty}(mc, i_snr, :)] = GenerateROC(Qdics{ty}', 0.015, R(1:dec:end,:),...
-                                           IND{ty}, 200, XYZGenOut, 1);
+                                                  IND{ty}, 200, XYZGenOut, 1);
 
 
         [Qgcs_dics{ty}, IND{ty}] = ups.GCS_DICS((C), Gp_dec{ty}, 1000);
@@ -169,6 +169,7 @@ for i_snr = 1:length(InducedScale)
          PPVgcs_dics{ty}(mc, i_snr, :)] = GenerateROC(Qgcs_dics{ty}', 0.015,...
                                                       R(1:dec:end,:),...
                                                       IND{ty}, 200, XYZGenOut, 1);
+
 
         % [~, ~, ~, Qpsiicos{ty}] = ps.T_PSIICOS(imag(C(:)), Gp_dec{ty}, 0.9, 350, 0, []);
 

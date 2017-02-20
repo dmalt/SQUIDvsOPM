@@ -43,7 +43,7 @@ function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShift
 
     if(~bNewBrainNoise)
         % BN = load('BrainNoise2017.mat');
-        BN = load(['./BrainNoise2017_', num2str(ty), '.mat']);
+        BN = load(['../data/BrainNoise2017_', num2str(ty), '.mat']);
     end;
 
     fprintf('Simulating trial data ...\n');

@@ -11,7 +11,7 @@ import ups.ReduceToTangentSpace
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
 InducedScale = {0.25, 0.5, 0.75, 1.0, 1.25}; 
 
-data = matfile('data_2D.mat') ;
+data = matfile('../data/data_2D.mat') ;
 data = data.data(1,1);
 data = data{1};
 
@@ -32,7 +32,7 @@ R = [RL; RR];
 
 clear data;
 
-data_big = matfile('data_tOPM.mat');
+data_big = matfile('../data/data_tOPM.mat');
 data_big = data_big.data_tOPM(1,1);
 data_big = data_big{1};
 

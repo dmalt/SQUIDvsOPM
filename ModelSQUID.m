@@ -42,6 +42,15 @@ G_tOPM = ReduceToTangentSpace(G_tOPM, 'all');
 clear data_big;
 
 
+data_nopm = matfile('../data/data_nOPM204.mat');
+data_nopm = data_nopm.data_nOPM204(1, 1);
+data_nopm = data_nopm{1};
+
+G_nOPM204 = data_nopm.nOPM204.L;
+G_nOPM204 = ReduceToTangentSpace(G_nOPM204, 'all');
+
+clear data_nopm;
+
 % Do rank reduction, use the same threshold for the two sensor types 
 [ug_OPM, ~, ~] = spm_svd(G_OPM * G_OPM', GainSVDTh);
 UP_OPM = ug_OPM';
@@ -55,17 +64,22 @@ UP_SQUID = ug_SQUID';
 [ug_tOPM, ~, ~] = spm_svd(G_tOPM * G_tOPM', GainSVDTh);
 UP_tOPM = ug_tOPM';
 
-G = {G_SQUID, G_mSQUID, G_OPM, G_tOPM};
-UP = {UP_SQUID, UP_mSQUID, UP_OPM, UP_tOPM};
+[ug_nOPM204, ~, ~] = spm_svd(G_nOPM204 * G_nOPM204', GainSVDTh);
+UP_nOPM204 = ug_nOPM204';
+
+G = {G_SQUID, G_mSQUID, G_OPM, G_tOPM, G_nOPM204};
+UP = {UP_SQUID, UP_mSQUID, UP_OPM, UP_tOPM, UP_nOPM204};
 
 [N_ch_squid, N_src_2] = size(G_SQUID);
 [N_ch_msquid, ~] = size(G_mSQUID);
 [N_ch_opm, ~] = size(G_OPM);
 [N_ch_topm, ~] = size(G_tOPM);
-N_ch = {N_ch_squid, N_ch_msquid, N_ch_opm, N_ch_topm};
+[N_ch_nopm204, ~] = size(G_nOPM204);
+N_ch = {N_ch_squid, N_ch_msquid, N_ch_opm, N_ch_topm, N_ch_nopm204};
 N_src = N_src_2 / 2;
 
-N_ch_p = {size(UP_SQUID,1), size(UP_mSQUID, 1), size(UP_OPM,1), size(UP_tOPM, 1)};
+N_ch_p = {size(UP_SQUID,1), size(UP_mSQUID, 1),...
+          size(UP_OPM,1), size(UP_tOPM, 1), size(UP_nOPM204,1)};
 
 dec = 10;
 N_src_dec = ceil(N_src / dec);

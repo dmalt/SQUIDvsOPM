@@ -66,17 +66,18 @@ function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShift
          % collect activity from the selected networks
 
         induced = Ggen * s{1};
-        induced = induced / sqrt(sum((induced(:) .^ 2)));
+        % induced = induced / sqrt(sum((induced(:) .^ 2)));
         Induced(:,range) = induced;
         
         
+        % Change this
         if(bNewBrainNoise)
             brainnoise = GenerateBrainNoise_SQUIDvsOPM(G2d, T, 500, 1000, Fs);
         else
             brainnoise = BN.BrainNoise(:, range);
         end;
         
-        brainnoise = brainnoise / sqrt(sum((brainnoise(:) .^ 2)));
+        brainnoise = brainnoise;% / sqrt(sum((brainnoise(:) .^ 2)));
         BrainNoise(:, range) = brainnoise;
         
         sensornoise = randn(size(brainnoise));
@@ -85,7 +86,7 @@ function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShift
         range = range + T;
 
         if tr > 1
-          for j=0:log10(tr - 1)
+          for j = 0 : log10(tr - 1)
               fprintf('\b'); % delete previous counter display
           end
          end

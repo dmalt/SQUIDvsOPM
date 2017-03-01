@@ -1,4 +1,10 @@
-function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShiftsOut] = SimulateDataPhase_SQUIDvsOPM(XYZGen, dPhi, bNewBrainNoise, PhaseShiftsIn, R, G2d, alpha_in, ty)
+function [Induced, BrainNoise,...
+          SensorNoise, Fs,...
+          Ntr, XYZGenOut,...
+          Ggen, PhaseShiftsOut] = SimulateDataPhase_SQUIDvsOPM(XYZGen, dPhi,...
+                                                               bNewBrainNoise,...
+                                                               PhaseShiftsIn,...
+                                                               R, G2d, alpha_in, ty)
 
     bUsePhases = ~isempty(PhaseShiftsIn);
 
@@ -66,7 +72,7 @@ function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShift
          % collect activity from the selected networks
 
         induced = Ggen * s{1};
-        % induced = induced / sqrt(sum((induced(:) .^ 2)));
+        induced = induced / sqrt(sum((induced(:) .^ 2)));
         Induced(:,range) = induced;
         
         
@@ -77,7 +83,7 @@ function [Induced, BrainNoise, SensorNoise, Fs, Ntr, XYZGenOut, Ggen, PhaseShift
             brainnoise = BN.BrainNoise(:, range);
         end;
         
-        brainnoise = brainnoise;% / sqrt(sum((brainnoise(:) .^ 2)));
+        brainnoise = brainnoise / sqrt(sum((brainnoise(:) .^ 2)));
         BrainNoise(:, range) = brainnoise;
         
         sensornoise = randn(size(brainnoise));

@@ -11,7 +11,7 @@ import ups.ReduceToTangentSpace
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
 % InducedScale = {1.}; 
 % InducedScale = {0.25, 0.5, 0.75, 1.0, 1.25}; 
-InducedScale = {1., 2., 5., 10., 20., 40.}; 
+InducedScale = {0.01, 0.1, 1., 2., 5., 10.}; 
 
 data = matfile('../data/data_2D.mat') ;
 data = data.data(1, 1);
@@ -96,14 +96,14 @@ Rdec = R(1:dec:end,:);
 
 % for mc = 1:100
 
-for mc = 1:100
+for mc = 1:1
     for i_snr = 1:length(InducedScale)
         disp('MC -------------> ')
         disp(mc)
-        dst = 0; 
-        while(dst < 0.03)
+        dst = 10; 
+        while(dst > 0.03)
             ind = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
-            dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:))
+            dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:));
         end
 
         for ty = 1:5
@@ -198,7 +198,7 @@ false
 
             % [Qidics{ty}, Psidics{ty}, IND{ty}] = iDICS_1D(C, Gp{ty}(:, 1:dec:end));
             % [~, ~, IND{ty}] = iDICS_1D(C, Gp_dec{ty});
-            [A, Psidics{ty}, Qidics{ty}, IND{ty}] = ups.DICS((C), Gp_dec{ty}, 1000, true);
+            [~, Psidics{ty}, Qidics{ty}, IND{ty}] = ups.DICS((C), Gp_dec{ty}, 1000, true);
 
             [SPCidics{ty}(mc, i_snr, :),...
              TPRidics{ty}(mc, i_snr, :),...
@@ -229,7 +229,7 @@ false
             %  TPRpsiicos{ty}(mc, i_snr, :),...
             %  PPVpsiicos{ty}(mc, i_snr, :)] = GenerateROC(Qpsiicos{ty}', 0.015, R(1:dec:end,:),...
             %                                      IND{ty}, 200, XYZGenOut, 1);
-            end
+        end
     end
 
 end

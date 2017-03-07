@@ -3,7 +3,7 @@ figure
 subplot(2,3,1)
 
 i_snr = 1;
-range_monte = 1:9;
+range_monte = 1:99;
 
 % figure
 for ty = 1:5

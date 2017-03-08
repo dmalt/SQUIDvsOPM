@@ -11,7 +11,7 @@ import ups.ReduceToTangentSpace
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
 % InducedScale = {1.}; 
 % InducedScale = {0.25, 0.5, 0.75, 1.0, 1.25}; 
-InducedScale = {0.01, 0.1, 1., 2., 5., 10.}; 
+InducedScale = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 
 data = matfile('../data/data_2D.mat') ;
 data = data.data(1, 1);
@@ -96,15 +96,16 @@ Rdec = R(1:dec:end,:);
 
 % for mc = 1:100
 
+dst = 10; 
+while(dst > 0.03)
+    ind = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
+    dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:));
+end
+
 for mc = 1:1
     for i_snr = 1:length(InducedScale)
         disp('MC -------------> ')
         disp(mc)
-        dst = 10; 
-        while(dst > 0.03)
-            ind = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
-            dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:));
-        end
 
         for ty = 1:5
 
@@ -153,7 +154,7 @@ for mc = 1:1
             [G_gen{ty}, XYZGenAct] = GetGeneratingFwd(Rdec(ind,:), G_dec, Rdec);
 
             induced_scale_factor = sqrt(sum(Induced_src .^ 2, 2));
-            Induced_src =  bsxfun(@rdivide, Induced_src, induced_scale_factor); 
+            Induced_src_norm =  bsxfun(@rdivide, Induced_src, induced_scale_factor); 
 
             [bf, af] = butter(5, [8 12] / (0.5 * Fs), 'bandpass');
             % BN_alpha = filtfilt(bf, af, BrainNoise_src')';
@@ -162,13 +163,13 @@ for mc = 1:1
             N = 1000;
             % bn_scale_factor = sqrt(sum(BrainNoise_src .^ 2, 2)) * N / 20;
             bn_scale_factor = sqrt(sum(BrainNoise_src .^ 2, 2)) * N / InducedScale{i_snr};
-            BrainNoise_src = bsxfun(@rdivide, BrainNoise_src, bn_scale_factor);
+            BrainNoise_src_norm = bsxfun(@rdivide, BrainNoise_src, bn_scale_factor);
 
-            Induced{ty} = G_gen{ty} * Induced_src;
+            Induced{ty} = G_gen{ty} * Induced_src_norm;
 
 
             SrcIndex = fix(rand(1, N) * N_src + 1);
-            BrainNoise{ty} = G{ty}(:, SrcIndex) * BrainNoise_src; 
+            BrainNoise{ty} = G{ty}(:, SrcIndex) * BrainNoise_src_norm; 
             % Generate forward
 
              % [C, ~, XYZGenOut] = ups.SimulateData(phi, 100, InducedScale, 0, false, G{ty}, R, UP{ty});
@@ -204,15 +205,15 @@ false
              TPRidics{ty}(mc, i_snr, :),...
              PPVidics{ty}(mc, i_snr, :)] = GenerateROC(Qidics{ty}', 0.015,...
                                                        R(1:dec:end,:),...
-                                                       IND{ty}, 200, XYZGenOut, 1);
+                                                       IND{ty}, 100, XYZGenOut, 1);
 
 
-            [A, Psdics{ty}, Qdics{ty}, IND{ty}] = ups.DICS((C), Gp_dec{ty}, 1000, false);
+            % [A, Psdics{ty}, Qdics{ty}, IND{ty}] = ups.DICS((C), Gp_dec{ty}, 1000, false);
 
-            [SPCdics{ty}(mc, i_snr, :),...
-             TPRdics{ty}(mc, i_snr, :),...
-             PPVdics{ty}(mc,i_snr,:)] = GenerateROC(Qdics{ty}', 0.015, R(1:dec:end,:),...
-                                                    IND{ty}, 200, XYZGenOut, 1);
+            % [SPCdics{ty}(mc, i_snr, :),...
+            %  TPRdics{ty}(mc, i_snr, :),...
+            %  PPVdics{ty}(mc,i_snr,:)] = GenerateROC(Qdics{ty}', 0.015, R(1:dec:end,:),...
+            %                                         IND{ty}, 200, XYZGenOut, 1);
 
 
             [Qgcs_dics{ty}, IND{ty}] = ups.GCS_DICS((C), Gp_dec{ty}, 1000);
@@ -221,7 +222,7 @@ false
              TPRgcs_dics{ty}(mc, i_snr, :),...
              PPVgcs_dics{ty}(mc, i_snr, :)] = GenerateROC(Qgcs_dics{ty}', 0.015,...
                                                           R(1:dec:end,:),...
-                                                          IND{ty}, 200, XYZGenOut, 1);
+                                                          IND{ty}, 100, XYZGenOut, 1);
 
             % [~, ~, ~, Qpsiicos{ty}] = ps.T_PSIICOS(imag(C(:)), Gp_dec{ty}, 0.9, 350, 0, []);
 

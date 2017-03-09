@@ -3,7 +3,6 @@ figure
 % subplot(2,3,1)
 subplot(2,2,1)
 
-i_snr = 1;
 range_snr = 1:size(InducedScale,2); 
 range_monte = 1:10;
 
@@ -81,7 +80,7 @@ ylabel('AUC Precision-Recall');
 subplot(2,2,4);
 for ty=1:5
     auc_prec{ty} = calc_auc(TPRgcs_dics{ty}(range_monte,:,:), PPVgcs_dics{ty}(range_monte,:,:));
-    errorbar(1:4, fliplr(mean(auc_prec{ty},1)), fliplr(std(auc_prec{ty}, 1)));
+    errorbar(range_snr, fliplr(mean(auc_prec{ty},1)), fliplr(std(auc_prec{ty}, 1)));
     hold on;
 end;
 title('GCS-DICS')

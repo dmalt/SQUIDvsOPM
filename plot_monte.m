@@ -3,8 +3,7 @@ figure
 subplot(2,2,1)
 
 % i_snr = 5;
-i_snr = 4;
-for mc = 1:100
+i_snr = 1;
 % range_monte = 1:11;
 range_monte = 1:10;
 
@@ -66,7 +65,7 @@ xlabel('recall');
 ylabel('precision');
 
 % figure
-subplot(2,3,5);
+% subplot(2,3,5);
 % for ty=1:5
 %     plot( squeeze(mean(TPRdics{ty}(range_monte,i_snr,:), 1)),...
 %           squeeze(mean(PPVdics{ty}(range_monte,i_snr,:), 1)));%, col{ty + 3})

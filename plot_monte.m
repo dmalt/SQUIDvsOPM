@@ -1,10 +1,12 @@
 figure
-subplot(2,3,1)
+% subplot(2,3,1)
+subplot(2,2,1)
 
 % i_snr = 5;
-i_snr = 3;
+i_snr = 4;
+for mc = 1:100
 % range_monte = 1:11;
-range_monte = 1:1;
+range_monte = 1:10;
 
 % figure
 for ty = 1:5
@@ -20,7 +22,7 @@ xlim([0, 0.05]);
 ylim([0, 1]);
 
 % figure
-subplot(2,3,2);
+% subplot(2,3,2);
 % for ty = 1:5
 %     plot(1 - squeeze(mean(SPCdics{ty}(range_monte,i_snr,:), 1)),...
 %              squeeze(mean(TPRdics{ty}(range_monte,i_snr,:), 1)));%, col{ty + 3})
@@ -34,7 +36,8 @@ subplot(2,3,2);
 % ylim([0, 1]);
 
 % figure
-subplot(2,3,3);
+% subplot(2,3,3);
+subplot(2,2,2);
 for ty = 1:5
     plot(1 - squeeze(mean(SPCgcs_dics{ty}(range_monte,i_snr,:), 1)),...
              squeeze(mean(TPRgcs_dics{ty}(range_monte,i_snr,:), 1)));%, col{ty + 6})
@@ -50,7 +53,8 @@ ylim([0, 1]);
 % --------------------------------------------------------------------------- %
 
 % figure
-subplot(2,3,4);
+% subplot(2,3,4);
+subplot(2,2,3);
 for ty = 1:5
     plot(squeeze(mean(TPRidics{ty}(range_monte,i_snr,:), 1)),...
          squeeze(mean(PPVidics{ty}(range_monte,i_snr,:), 1)));%, col{ty})
@@ -74,7 +78,8 @@ subplot(2,3,5);
 % ylabel('precision');
 
 % figure
-subplot(2,3,6);
+% subplot(2,3,6);
+subplot(2,2,4);
 for ty=1:5
     plot( squeeze(mean(TPRgcs_dics{ty}(range_monte,i_snr,:), 1)),...
           squeeze(mean(PPVgcs_dics{ty}(range_monte,i_snr,:), 1)));%, col{ty + 6})

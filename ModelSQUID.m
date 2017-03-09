@@ -11,7 +11,7 @@ import ups.ReduceToTangentSpace
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
 % InducedScale = {1.}; 
 % InducedScale = {0.25, 0.5, 0.75, 1.0, 1.25}; 
-InducedScale = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+InducedScale = {10, 50, 100, 150, 200};
 
 data = matfile('../data/data_2D.mat') ;
 data = data.data(1, 1);
@@ -88,13 +88,12 @@ N_src_dec = ceil(N_src / dec);
 
 % % fix the phase lag 
 phi = pi / 2 - pi / 20;
-%generate random phase jitters and trials of brain noise (to save time)
+% generate random phase jitters and trials of brain noise (to save time)
 PhaseShiftsIn = [];
 
 
 Rdec = R(1:dec:end,:);
 
-% for mc = 1:100
 
 dst = 10; 
 while(dst > 0.03)
@@ -102,7 +101,7 @@ while(dst > 0.03)
     dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:));
 end
 
-for mc = 1:1
+for mc = 1:10
     for i_snr = 1:length(InducedScale)
         disp('MC -------------> ')
         disp(mc)
@@ -173,9 +172,9 @@ for mc = 1:1
             % Generate forward
 
              % [C, ~, XYZGenOut] = ups.SimulateData(phi, 100, InducedScale, 0, false, G{ty}, R, UP{ty});
-false
+             %
             % Data0{ty} = BrainNoise{ty} + InducedScale{i_snr} * Induced{ty};
-            Data0{ty} = BrainNoise{ty} +  Induced{ty};
+            Data0{ty} = BrainNoise{ty} + Induced{ty};
             % Data0{ty} = ups.ShufflePhases(Data0{ty});
             % Filter in the band of interest
             Data{ty} = filtfilt(bf, af, Data0{ty}')';
@@ -184,7 +183,7 @@ false
             [Nch{ty}, Tcnt] = size(Data{ty});
             T = fix(Tcnt / Ntr);
             Nch{ty} = size(UP{ty}, 1);
-            %reshape Data and store in a 3D array X
+            % reshape Data and store in a 3D array X
             X1{ty} = zeros(Nch{ty}, T, Ntr);
             range = 1:T;
             for i = 1:Ntr

@@ -11,7 +11,8 @@ import ups.ReduceToTangentSpace
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
 % InducedScale = {1.}; 
 % InducedScale = {0.25, 0.5, 0.75, 1.0, 1.25}; 
-InducedScale = {0.1, 1., 2., 5., 10, 50}; %, 100, 150, 200};
+% InducedScale = {0.1, 1., 2., 5., 10., 20.}; %, 100, 150, 200};
+InducedScale = {20., 50.}; %, 100, 150, 200};
 
 data = matfile('../data/data_2D.mat') ;
 data = data.data(1, 1);
@@ -95,13 +96,25 @@ PhaseShiftsIn = [];
 Rdec = R(1:dec:end,:);
 
 
-dst = 10; 
-while(dst > 0.03)
-    ind = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
-    dst = norm(Rdec(ind(1),:) - Rdec(ind(2),:));
+i_dst = 1;
+
+max_mc = 10;
+new_monte_ntw = true;
+
+if new_monte_ntw
+    ind = zeros(max_mc,2)
+    for mc = 1:max_mc
+        dst = 10; 
+        while(dst > 0.03)
+            ind(mc,:) = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
+            dst = norm(Rdec(ind(mc, 1),:) - Rdec(ind(mc, 2),:));
+        end
+    end
+else
+    ind = %%%%%%%%%%%%%%%%%%%%%%%%%%;
 end
 
-for mc = 1:10
+for mc = 1:max_mc
     for i_snr = 1:length(InducedScale)
         disp('MC -------------> ')
         disp(mc)
@@ -143,14 +156,14 @@ for mc = 1:10
                  Ntr,...
                  XYZGenOut,...
                  Ggen{ty},...
-                 PhaseShiftsOut{ty}] = SimulateSrc(Rdec(ind,:),...
+                 PhaseShiftsOut{ty}] = SimulateSrc(Rdec(ind(mc,:),:),...
                                                    phi,...
                                                    true,...
                                                    PhaseShiftsIn,...
                                                    Rdec, G_dec, 0.25, ty);
             end
 
-            [G_gen{ty}, XYZGenAct] = GetGeneratingFwd(Rdec(ind,:), G_dec, Rdec);
+            [G_gen{ty}, XYZGenAct] = GetGeneratingFwd(Rdec(ind(mc,:),:), G_dec, Rdec);
 
             induced_scale_factor = sqrt(sum(Induced_src .^ 2, 2));
             Induced_src_norm =  bsxfun(@rdivide, Induced_src, induced_scale_factor); 

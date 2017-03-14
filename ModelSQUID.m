@@ -11,8 +11,8 @@ import ups.ReduceToTangentSpace
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
 % InducedScale = {1.}; 
 % InducedScale = {0.25, 0.5, 0.75, 1.0, 1.25}; 
-% InducedScale = {0.1, 1., 2., 5., 10., 20.}; %, 100, 150, 200};
-InducedScale = {20., 50.}; %, 100, 150, 200};
+InducedScale = {0.1, 1., 2., 5., 10., 20., 50., 100., 150., 200.}; %, 100, 150, 200};
+% InducedScale = {20., 50.}; %, 100, 150, 200};
 
 data = matfile('../data/data_2D.mat') ;
 data = data.data(1, 1);
@@ -99,7 +99,7 @@ Rdec = R(1:dec:end,:);
 i_dst = 1;
 
 max_mc = 10;
-new_monte_ntw = true;
+new_monte_ntw = false;
 
 if new_monte_ntw
     ind = zeros(max_mc,2)
@@ -111,7 +111,17 @@ if new_monte_ntw
         end
     end
 else
-    ind = %%%%%%%%%%%%%%%%%%%%%%%%%%;
+    ind = [1899, 1803;...
+           1145, 1204;...
+           1808, 1655;...
+           1987, 2000;...
+           1758, 1508;...
+           1208, 1147;...
+           1639, 1403;...
+           1837, 824;...
+            393, 521;...
+            605, 751;]
+
 end
 
 for mc = 1:max_mc

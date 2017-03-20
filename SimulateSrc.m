@@ -1,12 +1,6 @@
 function [Induced_src, BrainNoise_src,...
-          SensorNoise, Fs,...
-          Ntr, XYZGenOut,...
-          Ggen, PhaseShiftsOut] = SimulateSrc(XYZGen, dPhi,...
-                                              bNewBrainNoise,...
-                                              PhaseShiftsIn,...
-                                              R, G2d, alpha_in, ty)
+          Fs, Ntr] = SimulateSrc(dPhi, alpha_in)
 
-    bUsePhases = ~isempty(PhaseShiftsIn);
 
     if(nargin < 7)
         alpha = 0.05;
@@ -14,16 +8,16 @@ function [Induced_src, BrainNoise_src,...
         alpha = alpha_in;
     end;
 
-    if(nargin == 0)
-        bNewBrainNoise = true; % whether or not to generate new brain noise
-    end;
+    % if(nargin == 0)
+    %     bNewBrainNoise = true; % whether or not to generate new brain noise
+    % end;
 
     N_brain = 1000;
 
     % create normalized forward matrix, leaving only two components in the tangential plane 
-    [Ns, Nsites] = size(G2d);
+    % [Ns, Nsites] = size(G2d);
 
-    [Ggen, XYZGenAct] = GetGeneratingFwd(XYZGen, G2d, R);
+    % [Ggen, XYZGenAct] = GetGeneratingFwd(XYZGen, G2d, R);
 
     nw = [1, 2]; % If you want to simulate all four networks use
 
@@ -42,31 +36,27 @@ function [Induced_src, BrainNoise_src,...
     clear Data;
     Fs = 500; % sampling rate
     BrainNoise_src   = zeros(N_brain, Ntr * T);
-    SensorNoise  = zeros(Ns, Ntr * T);
+    % SensorNoise  = zeros(Ns, Ntr * T);
     Induced_src      = zeros(2, Ntr * T);
-    Evoked           = zeros(Ns, Ntr * T);
+
     F1 = 10; % Hz;
     t = linspace(0, 1, Fs);
     clear s;
 
-    if(~bNewBrainNoise)
-        % BN = load('BrainNoise2017.mat');
-        % BN = load(['../data/BrainNoise2017_', num2str(ty), '.mat']);
-        BN = load(['../data/BrainNoise_src', '.mat']);
-    end;
+    % if(~bNewBrainNoise)
+    %     % BN = load('BrainNoise2017.mat');
+    %     % BN = load(['../data/BrainNoise2017_', num2str(ty), '.mat']);
+    %     BN = load(['../data/BrainNoise_src', '.mat']);
+    % end;
 
     fprintf('Simulating trial data ...\n');
     fprintf('Current trial number (Max %d):', Ntr);
     PhaseShiftsOut = zeros(Ntr, 8);
     for tr = 1:Ntr
         
-        if(bUsePhases)
-            phi1 = PhaseShiftsIn(tr, 1);
-            phi_alpha = PhaseShiftsIn(tr, 2);
-        else
-            phi1= 2 * (rand - 0.5) * pi;
-            phi_alpha = alpha * (rand - 0.5) * pi;
-        end;
+        phi1 = 2 * (rand - 0.5) * pi;
+        phi_alpha = alpha * (rand - 0.5) * pi;
+
         PhaseShiftsOut(tr, 1:2) = [phi1, phi_alpha];
         rnd_phi12 = phi_alpha + dPhi;
         s{1}(1,:) = sin(2 * pi * F1 * t + phi1) .* sp(1,:);
@@ -81,19 +71,19 @@ function [Induced_src, BrainNoise_src,...
         
         
         % Change this
-        if(bNewBrainNoise)
+        % if(bNewBrainNoise)
             % brainnoise = GenerateBrainNoise_SQUIDvsOPM(G2d, T, 500, 1000, Fs);
-            brainnoise = GenerateBrainNoise_src(T, 500, N_brain, Fs);
-        else
-            brainnoise = BN.BrainNoise_src(:, range);
-        end;
+        brainnoise = GenerateBrainNoise_src(T, 500, N_brain, Fs);
+        % else
+        %     brainnoise = BN.BrainNoise_src(:, range);
+        % end;
         
         % brainnoise = brainnoise / sqrt(sum((brainnoise(:) .^ 2)));
         BrainNoise_src(:, range) = brainnoise;
         
-        sensornoise = randn(Ns, T);
-        sensornoise = sensornoise / sqrt(sum((sensornoise(:) .^ 2)));
-        SensorNoise(:, range) = sensornoise;
+        % sensornoise = randn(Ns, T);
+        % sensornoise = sensornoise / sqrt(sum((sensornoise(:) .^ 2)));
+        % SensorNoise(:, range) = sensornoise;
         range = range + T;
 
         if tr > 1
@@ -104,13 +94,11 @@ function [Induced_src, BrainNoise_src,...
          fprintf('%d', tr);
     end
 
-    if(bNewBrainNoise)
-       save(['./BrainNoise_src', '.mat'], 'BrainNoise_src');
-    end;
+    % if(bNewBrainNoise)
+    %    save(['./BrainNoise_src', '.mat'], 'BrainNoise_src');
+    % end;
 
     fprintf('\nDone.\n');
-
-    XYZGenOut = XYZGenAct(nw,:);
 end
 
 

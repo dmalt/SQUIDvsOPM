@@ -1,6 +1,7 @@
 figure
 % subplot(2,3,1)
-subplot(2,2,1)
+% subplot(2,2,1)
+subplot(2,1,1)
 
 % i_snr = 5;
 i_snr = 1;
@@ -36,24 +37,24 @@ ylim([0, 1]);
 
 % figure
 % subplot(2,3,3);
-subplot(2,2,2);
-for ty = 1:5
-    plot(1 - squeeze(mean(SPCgcs_dics{ty}(range_monte,i_snr,:), 1)),...
-             squeeze(mean(TPRgcs_dics{ty}(range_monte,i_snr,:), 1)));%, col{ty + 6})
-    hold on;
-end
-title('GCS-DICS')
-legend('SQUID (gradiometers)', 'mSQUID', 'nOPM102', 'tOPM', 'nOPM204')
-xlabel('1 - specificity');
-ylabel('sensitivity');
-xlim([0, 0.05]);
-ylim([0, 1]);
+% subplot(2,2,2);
+% for ty = 1:5
+%     plot(1 - squeeze(mean(SPCgcs_dics{ty}(range_monte,i_snr,:), 1)),...
+%              squeeze(mean(TPRgcs_dics{ty}(range_monte,i_snr,:), 1)));%, col{ty + 6})
+%     hold on;
+% end
+% title('GCS-DICS')
+% legend('SQUID (gradiometers)', 'mSQUID', 'nOPM102', 'tOPM', 'nOPM204')
+% xlabel('1 - specificity');
+% ylabel('sensitivity');
+% xlim([0, 0.05]);
+% ylim([0, 1]);
 
 % --------------------------------------------------------------------------- %
 
 % figure
 % subplot(2,3,4);
-subplot(2,2,3);
+subplot(2,1,2);
 for ty = 1:5
     plot(squeeze(mean(TPRidics{ty}(range_monte,i_snr,:), 1)),...
          squeeze(mean(PPVidics{ty}(range_monte,i_snr,:), 1)));%, col{ty})
@@ -78,13 +79,13 @@ ylabel('precision');
 
 % figure
 % subplot(2,3,6);
-subplot(2,2,4);
-for ty=1:5
-    plot( squeeze(mean(TPRgcs_dics{ty}(range_monte,i_snr,:), 1)),...
-          squeeze(mean(PPVgcs_dics{ty}(range_monte,i_snr,:), 1)));%, col{ty + 6})
-    hold on;
-end;
-title('GCS-DICS')
-legend('SQUID (gradiometers)', 'mSQUID', 'nOPM102', 'tOPM', 'nOPM204')
-xlabel('recall');
-ylabel('precision');
+% subplot(2,2,4);
+% for ty=1:5
+%     plot( squeeze(mean(TPRgcs_dics{ty}(range_monte,i_snr,:), 1)),...
+%           squeeze(mean(PPVgcs_dics{ty}(range_monte,i_snr,:), 1)));%, col{ty + 6})
+%     hold on;
+% end;
+% title('GCS-DICS')
+% legend('SQUID (gradiometers)', 'mSQUID', 'nOPM102', 'tOPM', 'nOPM204')
+% xlabel('recall');
+% ylabel('precision');

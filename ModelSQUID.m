@@ -11,8 +11,12 @@ import ups.ReduceToTangentSpace
 % cd('/home/asus/MyProjects/SQUIDvsAM_MEG/Data');
 % InducedScale = {1.}; 
 % InducedScale = {0.25, 0.5, 0.75, 1.0, 1.25}; 
-InducedScale = {0.1, 1., 2., 5., 10., 20., 50., 100., 150., 200.}; %, 100, 150, 200};
+% InducedScale = {0.1, 1., 2., 5., 10., 20., 50., 100., 150., 200.}; %, 100, 150, 200};
 % InducedScale = {20., 50.}; %, 100, 150, 200};
+% InducedScale = {50., 100, 150, 200};
+% InducedScale = {250., 300, 350, 400};
+InducedScale = {0.0005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1}% 0.1, 1, 10};
+% InducedScale = {250., 251, 252, 253};
 
 data = matfile('../data/data_2D.mat') ;
 data = data.data(1, 1);
@@ -98,14 +102,15 @@ Rdec = R(1:dec:end,:);
 
 i_dst = 1;
 
-max_mc = 10;
-new_monte_ntw = false;
+max_mc = 50;
+new_monte_ntw = true;
+% new_monte_ntw = true;
 
 if new_monte_ntw
-    ind = zeros(max_mc,2)
+    ind = zeros(max_mc, 2);
     for mc = 1:max_mc
-        dst = 10; 
-        while(dst > 0.03)
+        dst = 0; 
+        while(dst < 0.03)
             ind(mc,:) = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
             dst = norm(Rdec(ind(mc, 1),:) - Rdec(ind(mc, 2),:));
         end
@@ -124,6 +129,9 @@ else
 
 end
 
+iter = 1;
+T = 500;
+% for mc = 1:max_mc
 for mc = 1:max_mc
     for i_snr = 1:length(InducedScale)
         disp('MC -------------> ')
@@ -158,20 +166,27 @@ for mc = 1:max_mc
             %                                                     PhaseShiftsIn,...
             %                                                     Rdec, G_dec, 0.25, ty);
 
-            if ty == 1
+            if iter == 1 
+            % if ty == 1 
                 [Induced_src,...
                  BrainNoise_src,...
-                 SensorNoise{ty},...
                  Fs,...
-                 Ntr,...
-                 XYZGenOut,...
-                 Ggen{ty},...
-                 PhaseShiftsOut{ty}] = SimulateSrc(Rdec(ind(mc,:),:),...
-                                                   phi,...
-                                                   true,...
-                                                   PhaseShiftsIn,...
-                                                   Rdec, G_dec, 0.25, ty);
+                 Ntr] = SimulateSrc(phi, 0.25);
+
+                 N = 1000;
+                 SrcIndex = fix(rand(1, N) * N_src + 1);
             end
+
+            range = 1:T;
+            for tr = 1:Ntr
+                SensorNoise  = zeros(N_ch{ty}, Ntr * T);
+                sensornoise = randn(N_ch{ty}, T);
+                sensornoise = sensornoise / sqrt(sum((sensornoise(:) .^ 2)));
+                SensorNoise(:, range) = sensornoise;
+                range = range + T;
+            end
+
+            iter = iter + 1;
 
             [G_gen{ty}, XYZGenAct] = GetGeneratingFwd(Rdec(ind(mc,:),:), G_dec, Rdec);
 
@@ -182,22 +197,20 @@ for mc = 1:max_mc
             % BN_alpha = filtfilt(bf, af, BrainNoise_src')';
 
             % bn_scale_factor = sqrt(sum(BN_alpha .^ 2, 2));
-            N = 1000;
             % bn_scale_factor = sqrt(sum(BrainNoise_src .^ 2, 2)) * N / 20;
-            bn_scale_factor = sqrt(sum(BrainNoise_src .^ 2, 2)) * N / InducedScale{i_snr};
-            BrainNoise_src_norm = bsxfun(@rdivide, BrainNoise_src, bn_scale_factor);
+            % bn_scale_factor = sqrt(sum(BrainNoise_src .^ 2, 2)) * N / InducedScale{i_snr};
+            % BrainNoise_src_norm = bsxfun(@rdivide, BrainNoise_src, bn_scale_factor);
 
             Induced{ty} = G_gen{ty} * Induced_src_norm;
 
-
-            SrcIndex = fix(rand(1, N) * N_src + 1);
-            BrainNoise{ty} = G{ty}(:, SrcIndex) * BrainNoise_src_norm; 
+            % BrainNoise{ty} = G{ty}(:, SrcIndex) * BrainNoise_src_norm; 
             % Generate forward
 
              % [C, ~, XYZGenOut] = ups.SimulateData(phi, 100, InducedScale, 0, false, G{ty}, R, UP{ty});
              %
             % Data0{ty} = BrainNoise{ty} + InducedScale{i_snr} * Induced{ty};
-            Data0{ty} = BrainNoise{ty} + Induced{ty};
+            % Data0{ty} = BrainNoise{ty} + Induced{ty};
+            Data0{ty} = SensorNoise + Induced{ty} * InducedScale{i_snr};
             % Data0{ty} = ups.ShufflePhases(Data0{ty});
             % Filter in the band of interest
             Data{ty} = filtfilt(bf, af, Data0{ty}')';
@@ -221,13 +234,26 @@ for mc = 1:max_mc
 
             % [Qidics{ty}, Psidics{ty}, IND{ty}] = iDICS_1D(C, Gp{ty}(:, 1:dec:end));
             % [~, ~, IND{ty}] = iDICS_1D(C, Gp_dec{ty});
+            % DICS seems to be unstable for networks with close nodes
+            % Things to try: vary lambda. Done
+            % Still nonmontonic auc with increase of SNR. Performance seems to be
+            % highly dependent on random brain noise. Probably unstable solution.
+            % AUC varied from 0.1 to 0.001
+            %
+            % Close SNR values. Set snr coefs to 250,251,252,253. Trying to see if
+            % AUC is as unstable as for less close SNR values.
+            % More dense grid
+            % 
+            %% Tried lamda for dst<0.03 :  1000, 0.1, 10, 100000, 100
+            % Try to simulate networks with orthogonal dipole orientations
+            % to avoid signal cancelling on sensors
             [~, Psidics{ty}, Qidics{ty}, IND{ty}] = ups.DICS((C), Gp_dec{ty}, 1000, true);
 
             [SPCidics{ty}(mc, i_snr, :),...
              TPRidics{ty}(mc, i_snr, :),...
              PPVidics{ty}(mc, i_snr, :)] = GenerateROC(Qidics{ty}', 0.015,...
                                                        R(1:dec:end,:),...
-                                                       IND{ty}, 100, XYZGenOut, 1);
+                                                       IND{ty}, 100, XYZGenAct, 1);
 
 
             % [A, Psdics{ty}, Qdics{ty}, IND{ty}] = ups.DICS((C), Gp_dec{ty}, 1000, false);
@@ -235,7 +261,7 @@ for mc = 1:max_mc
             % [SPCdics{ty}(mc, i_snr, :),...
             %  TPRdics{ty}(mc, i_snr, :),...
             %  PPVdics{ty}(mc,i_snr,:)] = GenerateROC(Qdics{ty}', 0.015, R(1:dec:end,:),...
-            %                                         IND{ty}, 200, XYZGenOut, 1);
+            %                                         IND{ty}, 200, XYZGenAct, 1);
 
 
             % [Qgcs_dics{ty}, IND{ty}] = ups.GCS_DICS((C), Gp_dec{ty}, 1000);
@@ -244,14 +270,14 @@ for mc = 1:max_mc
             %  TPRgcs_dics{ty}(mc, i_snr, :),...
             %  PPVgcs_dics{ty}(mc, i_snr, :)] = GenerateROC(Qgcs_dics{ty}', 0.015,...
             %                                               R(1:dec:end,:),...
-            %                                               IND{ty}, 100, XYZGenOut, 1);
+            %                                               IND{ty}, 100, XYZGenAct, 1);
 
             % [~, ~, ~, Qpsiicos{ty}] = ps.T_PSIICOS(imag(C(:)), Gp_dec{ty}, 0.9, 350, 0, []);
 
             % [SPCpsiicos{ty}(mc, i_snr, :),...
             %  TPRpsiicos{ty}(mc, i_snr, :),...
             %  PPVpsiicos{ty}(mc, i_snr, :)] = GenerateROC(Qpsiicos{ty}', 0.015, R(1:dec:end,:),...
-            %                                      IND{ty}, 200, XYZGenOut, 1);
+            %                                      IND{ty}, 200, XYZGenAct, 1);
         end
     end
 

@@ -109,8 +109,8 @@ new_monte_ntw = true;
 if new_monte_ntw
     ind = zeros(max_mc, 2);
     for mc = 1:max_mc
-        dst = 0; 
-        while(dst < 0.03)
+        dst = 10; 
+        while(dst > 0.03)
             ind(mc,:) = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
             dst = norm(Rdec(ind(mc, 1),:) - Rdec(ind(mc, 2),:));
         end

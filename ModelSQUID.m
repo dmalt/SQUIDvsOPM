@@ -178,9 +178,10 @@ for mc = 1:max_mc
             end
 
             range = 1:T;
+            H = G{ty} * G{ty}';
             for tr = 1:Ntr
                 SensorNoise  = zeros(N_ch{ty}, Ntr * T);
-                sensornoise = randn(N_ch{ty}, T);
+                sensornoise = H * randn(N_ch{ty}, T);
                 sensornoise = sensornoise / sqrt(sum((sensornoise(:) .^ 2)));
                 SensorNoise(:, range) = sensornoise;
                 range = range + T;
@@ -202,6 +203,7 @@ for mc = 1:max_mc
             % BrainNoise_src_norm = bsxfun(@rdivide, BrainNoise_src, bn_scale_factor);
 
             Induced{ty} = G_gen{ty} * Induced_src_norm;
+
 
             % BrainNoise{ty} = G{ty}(:, SrcIndex) * BrainNoise_src_norm; 
             % Generate forward

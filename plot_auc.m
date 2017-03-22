@@ -5,13 +5,14 @@ figure
 subplot(2,1,1)
 
 range_snr = 1:size(InducedScale,2); 
-range_monte = 1:2;
+n_monte = 50;
+range_monte = 1:n_monte;
 
 % figure
 % Divide std by sqrt(n)
 for ty = 1:5
     auc_roc{ty} = calc_auc(1 - SPCidics{ty}(range_monte,:,:), TPRidics{ty}(range_monte,:,:));
-    errorbar(range_snr, (mean(auc_roc{ty},1)), (std(auc_roc{ty}, 1)));
+    errorbar(range_snr, (mean(auc_roc{ty},1)), (std(auc_roc{ty}, 1)) / sqrt(n_monte));
     hold on;
 end;
 title('iDICS');
@@ -58,7 +59,7 @@ ylabel('AUC ROC');
 subplot(2,1,2);
 for ty = 1:5
     auc_prec{ty} = calc_auc(TPRidics{ty}(range_monte,:,:), PPVidics{ty}(range_monte,:,:));
-    errorbar(range_snr, (mean(auc_prec{ty},1)), (std(auc_prec{ty}, 1)));
+    errorbar(range_snr, (mean(auc_prec{ty},1)), (std(auc_prec{ty}, 1) / sqrt(n_monte)));
     hold on;
 end
 title('iDICS');

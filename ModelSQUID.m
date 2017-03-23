@@ -106,28 +106,47 @@ max_mc = 50;
 new_monte_ntw = true;
 % new_monte_ntw = true;
 
-if new_monte_ntw
-    ind = zeros(max_mc, 2);
-    for mc = 1:max_mc
-        dst = 10; 
-        while(dst > 0.03)
-            ind(mc,:) = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
-            dst = norm(Rdec(ind(mc, 1),:) - Rdec(ind(mc, 2),:));
+% if new_monte_ntw
+ind = zeros(max_mc * 2, 2);
+
+% for mc = 1:max_mc
+for mc = 1:50
+    for j = 1:3
+        dst = 0; 
+
+        while(dst < 0.05)
+            ind(2 * mc - 1,:) = fix(1 + rand(2,1) * (size(Rdec,1) - 2));
+            dst = norm(Rdec(ind(2 * mc - 1, 1),:) - Rdec(ind(2 * mc - 1, 2),:));
+        end
+
+        dst = 10;
+        while(dst > 0.03 || dst < 0.02)
+            ind(2 * mc, 1) = fix(1 + rand * (size(Rdec, 1) - 2));
+            dst = norm(Rdec(ind(2 * mc - 1, 1),:) - Rdec(ind(2 * mc, 1),:));
+        end
+
+        dst = 10;
+        while(dst > 0.03 || dst < 0.02)
+            ind(2 * mc, 2) = fix(1 + rand * (size(Rdec, 1) - 2));
+            dst = norm(Rdec(ind(2 * mc - 1, 2),:) - Rdec(ind(2 * mc, 2),:));
         end
     end
-else
-    ind = [1899, 1803;...
-           1145, 1204;...
-           1808, 1655;...
-           1987, 2000;...
-           1758, 1508;...
-           1208, 1147;...
-           1639, 1403;...
-           1837, 824;...
-            393, 521;...
-            605, 751;]
 
 end
+
+% else
+%     ind = [1899, 1803;...
+%            1145, 1204;...
+%            1808, 1655;...
+%            1987, 2000;...
+%            1758, 1508;...
+%            1208, 1147;...
+%            1639, 1403;...
+%            1837, 824;...
+%             393, 521;...
+%             605, 751;]
+
+% end
 
 iter = 1;
 T = 500;
@@ -178,10 +197,11 @@ for mc = 1:max_mc
             end
 
             range = 1:T;
-            H = G{ty} * G{ty}';
+            % H = G{ty} * G{ty}';
             for tr = 1:Ntr
                 SensorNoise  = zeros(N_ch{ty}, Ntr * T);
-                sensornoise = H * randn(N_ch{ty}, T);
+                % sensornoise = H * randn(N_ch{ty}, T);
+                sensornoise = randn(N_ch{ty}, T);
                 sensornoise = sensornoise / sqrt(sum((sensornoise(:) .^ 2)));
                 SensorNoise(:, range) = sensornoise;
                 range = range + T;
@@ -189,7 +209,8 @@ for mc = 1:max_mc
 
             iter = iter + 1;
 
-            [G_gen{ty}, XYZGenAct] = GetGeneratingFwd(Rdec(ind(mc,:),:), G_dec, Rdec);
+            [G_gen{ty}, XYZGenAct] = GetGeneratingFwd(Rdec(ind(2 * mc - 1:2 * mc,:),:),...
+                                                      G_dec, Rdec);
 
             induced_scale_factor = sqrt(sum(Induced_src .^ 2, 2));
             Induced_src_norm =  bsxfun(@rdivide, Induced_src, induced_scale_factor); 
@@ -255,7 +276,7 @@ for mc = 1:max_mc
              TPRidics{ty}(mc, i_snr, :),...
              PPVidics{ty}(mc, i_snr, :)] = GenerateROC(Qidics{ty}', 0.015,...
                                                        R(1:dec:end,:),...
-                                                       IND{ty}, 100, XYZGenAct, 1);
+                                                       IND{ty}, 100, XYZGenAct, [1,2]);
 
 
             % [A, Psdics{ty}, Qdics{ty}, IND{ty}] = ups.DICS((C), Gp_dec{ty}, 1000, false);

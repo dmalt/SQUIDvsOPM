@@ -5,7 +5,7 @@ figure
 subplot(2,1,1)
 
 range_snr = 1:size(InducedScale,2); 
-n_monte = 50;
+n_monte = 5;
 range_monte = 1:n_monte;
 
 % figure

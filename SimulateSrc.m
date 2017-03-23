@@ -37,7 +37,7 @@ function [Induced_src, BrainNoise_src,...
     Fs = 500; % sampling rate
     BrainNoise_src   = zeros(N_brain, Ntr * T);
     % SensorNoise  = zeros(Ns, Ntr * T);
-    Induced_src      = zeros(2, Ntr * T);
+    Induced_src      = zeros(4, Ntr * T);
 
     F1 = 10; % Hz;
     t = linspace(0, 1, Fs);
@@ -55,17 +55,27 @@ function [Induced_src, BrainNoise_src,...
     for tr = 1:Ntr
         
         phi1 = 2 * (rand - 0.5) * pi;
-        phi_alpha = alpha * (rand - 0.5) * pi;
+        phi_alpha1 = alpha * (rand - 0.5) * pi;
 
-        PhaseShiftsOut(tr, 1:2) = [phi1, phi_alpha];
-        rnd_phi12 = phi_alpha + dPhi;
+        phi3 = 2 * (rand - 0.5) * pi;
+        phi_alpha3 = alpha * (rand - 0.5) * pi;
+
+        PhaseShiftsOut(tr, 1:2) = [phi1, phi_alpha1];
+        rnd_phi12 = phi_alpha1 + dPhi;
+
+        PhaseShiftsOut(tr, 3:4) = [phi3, phi_alpha3];
+        rnd_phi56 = phi_alpha3 + dPhi;
+
         s{1}(1,:) = sin(2 * pi * F1 * t + phi1) .* sp(1,:);
         s{1}(2,:) = sin(2 * pi * F1 * t + phi1 + rnd_phi12) .* sp(1,:);
+
+        s{2}(1,:) =  sin(2 * pi * F1 * t + phi3) .* sp(3,:); 
+        s{2}(2,:) =  sin(2 * pi * F1 * t + phi3 + rnd_phi56) .* sp(3,:); 
 
          % collect activity from the selected networks
 
         % induced = Ggen * s{1};
-        induced = s{1};
+        induced = [s{1}; s{2}];
         % induced = induced / sqrt(sum((induced(:) .^ 2)));
         Induced_src(:,range) = induced;
         

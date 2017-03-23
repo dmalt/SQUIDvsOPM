@@ -1,6 +1,6 @@
 function [Ggen, XYZGenAct] = GetGeneratingFwd(XYZGen, G2d, R)
     % Assign topographies to generator coordinates(do not recompute, just find the closest one)
-    for i=1:size(XYZGen, 1)
+    for i = 1:size(XYZGen, 1)
         d = repmat(XYZGen(i,:), size(R,1), 1) - R;
         d = sum(d .* d, 2);
         [~, ind] = min(d);

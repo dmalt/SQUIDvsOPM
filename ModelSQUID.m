@@ -15,7 +15,7 @@ import ups.ReduceToTangentSpace
 % InducedScale = {20., 50.}; %, 100, 150, 200};
 % InducedScale = {50., 100, 150, 200};
 % InducedScale = {250., 300, 350, 400};
-InducedScale = {0.0005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1}% 0.1, 1, 10};
+InducedScale = {0.0005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1};% 0.1, 1, 10};
 % InducedScale = {250., 251, 252, 253};
 
 data = matfile('../data/data_2D.mat') ;
@@ -134,8 +134,7 @@ T = 500;
 % for mc = 1:max_mc
 for mc = 1:max_mc
     for i_snr = 1:length(InducedScale)
-        disp('MC -------------> ')
-        disp(mc)
+        fprintf('MC --> %d\n', mc);
 
         for ty = 1:5
 
